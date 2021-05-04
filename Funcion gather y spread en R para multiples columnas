@@ -1,0 +1,51 @@
+https://github.com/Dilmer97/Dilmer97.git
+
+library(readxl)
+Data <- read_excel("C:/Users/daniella/Desktop/Data Analisis/Acomodar Data en R/DATA.xlsx")
+View(Data[1:10, 1:10])
+
+#Columnas de ejemplo:
+#ID,	X,	Y,	REP1,	REP2,	REP3,	VAR1,	VAR2,	VAR3
+#Las primeras 3 son variables Clasificatorias
+
+library("tidyr")
+library("dplyr")
+library("magrittr")
+
+names(Data)
+#ORDENA LA DATA 
+Data1 <-Data %>%
+  gather(key = "M1", value = "1981", REP1, REP2, REP3) %>%
+  gather(key = "M2", value = "1982", VAR1, VAR2, VAR3) %>%
+  filter(substring(M1, 4) == substring(M2, 4))
+
+#El substring indica la cantidad de los caracteres de las variables 
+#por ejemplo REPX Tiene 4 caracteres
+#El Key indica el nombre de la Columna de las clasificatorias
+#El value el nombre de la columna de los valores
+
+#Formas de Borra Columnas del Key adicional (1 y 2)
+borrar <- c("M2")
+Data1 <- Data1[!(names(Data1) %in% borrar)]
+Data1 <-select(Data1, -6)
+
+#Despues de realizar lo anterior tendremos nuestra base de datos con las siguientes columnas:
+#"ID"   "X"    "Y"    "M1"   "1981" "1982", el M1 indica como las repeticiones va de 1 a 3
+
+#PROCESO INVERSO SPREAD()
+Data2 <-Data1 %>% 
+  gather(variable, value, -(ID:M1)) %>%
+  unite(temp, M1, variable) %>%
+  spread(temp, value)
+
+#Para reacomodar la base tengo que dejar una sola columna clasificatoria por ejemplo
+#Rep de 1 a 3 en el rango -(ID:M1) le indico que esas sean las Class
+#en el unite unicamente cambio la variable que quiero fracmentar temp y variable 
+#dejarla asi
+
+Data2=rename(Data2, REP1=REP1_1981, REP2=REP2_1981, REP3=REP3_1981, 
+             VAR1=REP1_1982, VAR2=REP2_1982, "1982-3"=REP3_1982)
+Data2=Data2[c(1:4, 6,8,5,7,9 )]
+
+#El codigo spread para mas columnas nos da las siguientes columnas:
+# "ID"        "X"         "Y"         "REP1_1981" "REP2_1981" "REP3_1981" "REP1_1982" "REP2_1982" "REP3_1982"
